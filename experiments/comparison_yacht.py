@@ -19,7 +19,7 @@ from matplotlib import pylab as plt
 import numpy as np
 import math
 import time
-from scipy.misc import logsumexp
+from scipy.special import logsumexp
 import pickle
 
 import torch
