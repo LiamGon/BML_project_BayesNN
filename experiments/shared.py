@@ -162,7 +162,7 @@ def get_gp_model(X,Y, input_dim, depth):
     model.likelihood.variance= defaults.noise_variance
     return model
 
-def get_intermediate_layers(H, num_layers, bias, width_class, weight_variance, bias_variance):
+def get_intermediate_layers(H, num_layers, bias, width_class, weight_variance, bias_variance, activation =ScaledRelu() ):
     intermediate_layers = []
     for layer_index in range(num_layers-1):
         if width_class == 'identity':
@@ -177,16 +177,16 @@ def get_intermediate_layers(H, num_layers, bias, width_class, weight_variance, b
         else:
             raise NotImplementedError
         intermediate_layers+= [GaussLinearStandardized(incoming_hidden_size, outgoing_hidden_size, bias=bias, raw_weight_variance = weight_variance, raw_bias_variance = bias_variance),
-        ScaledRelu() ]
+        activation ]
     return intermediate_layers
     
-def get_nn_model(D_IN,H,D_OUT, num_layers, width_class='identity', weight_variance=None, bias_variance=None):
+def get_nn_model(D_IN,H,D_OUT, num_layers, width_class='identity', weight_variance=None, bias_variance=None,activation = ScaledRelu()):
     if weight_variance is None:
         weight_variance = defaults.weight_variance
     if bias_variance is None:
         bias_variance = defaults.bias_variance
     assert(width_class in valid_width_classes )
-    intermediate_layers = get_intermediate_layers(H, num_layers, True, width_class, weight_variance, bias_variance)
+    intermediate_layers = get_intermediate_layers(H, num_layers, True, width_class, weight_variance, bias_variance, activation)
     if width_class == 'identity':
         first_hidden_size = H
         last_hidden_size = H
@@ -201,7 +201,7 @@ def get_nn_model(D_IN,H,D_OUT, num_layers, width_class='identity', weight_varian
     #embed()
     model = torch.nn.Sequential(
         GaussLinearStandardized(D_IN, first_hidden_size, bias=True, raw_weight_variance = weight_variance, raw_bias_variance = bias_variance),
-        ScaledRelu(),
+        activation,
         *intermediate_layers,
         GaussLinearStandardized(last_hidden_size, D_OUT, bias=True, raw_weight_variance = weight_variance, raw_bias_variance = bias_variance)
     )
